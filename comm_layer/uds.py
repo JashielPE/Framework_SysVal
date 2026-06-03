@@ -1,0 +1,9 @@
+# DTC Status byte bits (ISO 14229-1)
+TEST_FAILED                         = 0x01
+TEST_FAILED_THIS_OP_CYCLE           = 0x02
+PENDING_DTC                         = 0x04
+CONFIRMED_DTC                       = 0x08
+TEST_NOT_COMPLETED_THIS_OP_CYCLE    = 0x10
+TEST_FAILED_SINCE_LAST_CLEAR        = 0x20
+TEST_NOT_COMPLETED_SINCE_LAST_CLEAR = 0x40
+WARNING_INDICATOR_REQUESTED         = 0x80
