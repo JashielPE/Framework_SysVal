@@ -4,3 +4,4 @@ __pycache__/
 reports/
 *.html
 desktop.ini
+.DS_Store
