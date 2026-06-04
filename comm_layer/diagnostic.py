@@ -16,8 +16,8 @@ class Diagnostics(Can):
         return False
 
     def _send_session_request(self, sub_function: int) -> str:
-        self.send_message(diag_messages['diag_req_ipc'], [0x2, 0x10, sub_function])
-        response = self._wait_for_response(diag_messages['diag_res_ipc'])
+        self.send_message(diag_messages['diag_req_fd_ipc'], [0x2, 0x10, sub_function])
+        response = self._wait_for_response(diag_messages['diag_resp_fd_ipc'])
         if response is False:
             print('Session 0x{:X} — No response'.format(sub_function))
             return 'No response'
@@ -32,20 +32,20 @@ class Diagnostics(Can):
         return self._send_session_request(0x03)
 
     def check_dtc_by_status_mask(self, mask=0x9):
-        self.send_message(diag_messages['diag_req_ipc'], [0x3, 0x19, 0x02, mask, 0x00, 0x00, 0x00, 0x00])
-        msg_resp = self._wait_for_response(diag_messages['diag_res_ipc'])
+        self.send_message(diag_messages['diag_req_fd_ipc'], [0x3, 0x19, 0x02, mask, 0x00, 0x00, 0x00, 0x00])
+        msg_resp = self._wait_for_response(diag_messages['diag_resp_fd_ipc'])
         if msg_resp is False:
             return None
 
         if msg_resp.data[0] == 0x10:
-            self.send_message(diag_messages['diag_req_ipc'], [0x30, 0x0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+            self.send_message(diag_messages['diag_req_fd_ipc'], [0x30, 0x00, 0x00])
             data_length = ((msg_resp.data[0] & 0x0F) << 8) | msg_resp.data[1]
             payload = bytearray(msg_resp.data[2:])
-            num_frames = data_length // 7
-            for _ in range(num_frames):
-                cf = self.check_message(diag_messages['diag_res_ipc'])
-                if cf:
-                    payload += bytearray(cf.data[1:])
+            while len(payload) < data_length:
+                cf = self.check_message(diag_messages['diag_resp_fd_ipc'])
+                if cf is False:
+                    break
+                payload += bytearray(cf.data[1:])
             payload = bytes(payload[:data_length])
         elif msg_resp.data[0] == 0x00:
             length = msg_resp.data[1]
@@ -68,8 +68,8 @@ class Diagnostics(Can):
         return dtcs
 
     def clear_all_dtc(self) -> str:
-        self.send_message(diag_messages['diag_req_ipc'], [0x4, 0x14, 0xFF, 0xFF, 0xFF])
-        msg_resp = self._wait_for_response(diag_messages['diag_res_ipc'])
+        self.send_message(diag_messages['diag_req_fd_ipc'], [0x4, 0x14, 0xFF, 0xFF, 0xFF])
+        msg_resp = self._wait_for_response(diag_messages['diag_resp_fd_ipc'])
         if msg_resp is False:
             print('Clear DTC — No response')
             return 'No response'
